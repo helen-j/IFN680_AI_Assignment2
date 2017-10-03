@@ -1,19 +1,16 @@
 '''
 
-Only a DRAFT. 
-Final version will be release on Tuesday 26th Sept
-
 2017 IFN680 Assignment Two
 
-Instructions: 
-    - 
+Scaffholding code to get you started for the 2nd assignment.
+
 
 '''
 
 import random
 import numpy as np
 
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 
 from tensorflow.contrib import keras
 
@@ -27,24 +24,43 @@ import assign2_utils
 #------------------------------------------------------------------------------
 
 def euclidean_distance(vects):
+    '''
+    Auxiliary function to compute the Euclidian distance between two vectors
+    in a Keras layer.
+    '''
     x, y = vects
     return K.sqrt(K.maximum(K.sum(K.square(x - y), axis=1, keepdims=True), K.epsilon()))
 
 #------------------------------------------------------------------------------
 
 def contrastive_loss(y_true, y_pred):
-    '''Contrastive loss from Hadsell-et-al.'06
+    '''
+    Contrastive loss from Hadsell-et-al.'06
     http://yann.lecun.com/exdb/publis/pdf/hadsell-chopra-lecun-06.pdf
+    @param
+      y_true : true label 1 for positive pair, 0 for negative pair
+      y_pred : distance output of the Siamese network    
     '''
     margin = 1
+    # if positive pair, y_true is 1, penalize for large distance returned by Siamese network
+    # if negative pair, y_true is 0, penalize for distance smaller than the margin
     return K.mean(y_true * K.square(y_pred) +
                   (1 - y_true) * K.square(K.maximum(margin - y_pred, 0)))
 #------------------------------------------------------------------------------
 
 def compute_accuracy(predictions, labels):
-    '''Compute classification accuracy with a fixed threshold on distances.
     '''
-    return labels[predictions.ravel() < 0.5].mean()
+    Compute classification accuracy with a fixed threshold on distances.
+    @param 
+      predictions : values computed by the Siamese network
+      labels : 1 for positive pair, 0 otherwise
+    '''
+    # the formula below, compute only the true positive rate]
+    #    return labels[predictions.ravel() < 0.5].mean()
+    n = labels.shape[0]
+    acc =  (labels[predictions.ravel() < 0.5].sum() +  # count True Positive
+               (1-labels[predictions.ravel() >= 0.5]).sum() ) / n  # True Negative
+    return acc
 
 #------------------------------------------------------------------------------
 
@@ -52,7 +68,16 @@ def create_pairs(x, digit_indices):
     '''
        Positive and negative pair creation.
        Alternates between positive and negative pairs.
-       
+       @param
+         digit_indices : list of lists
+            digit_indices[k] is the list of indices of occurences digit k in 
+            the dataset
+       @return
+         P, L 
+         where P is an array of pairs and L an array of labels
+         L[i] ==1 if P[i] is a positive pair
+         L[i] ==0 if P[i] is a negative pair
+         
     '''
     pairs = []
     labels = []
@@ -61,9 +86,11 @@ def create_pairs(x, digit_indices):
         for i in range(n):
             z1, z2 = digit_indices[d][i], digit_indices[d][i + 1]
             pairs += [[x[z1], x[z2]]]
+            # z1 and z2 form a positive pair
             inc = random.randrange(1, 10)
             dn = (d + inc) % 10
             z1, z2 = digit_indices[d][i], digit_indices[dn][i]
+            # z1 and z2 form a negative pair
             pairs += [[x[z1], x[z2]]]
             labels += [1, 0]
     return np.array(pairs), np.array(labels)
@@ -76,9 +103,15 @@ def simplistic_solution():
     Train a Siamese network to predict whether two input images correspond to the 
     same digit.
     
+    WARNING: 
+        in your submission, you should use auxiliary functions to create the 
+        Siamese network, to train it, and to compute its performance.
+    
+    
     '''
     def create_simplistic_base_network(input_dim):
-        '''Base network to be shared (eq. to feature extraction).
+        '''
+        Base network to be shared (eq. to feature extraction).
         '''
         seq = keras.models.Sequential()
         seq.add(keras.layers.Dense(128, input_shape=(input_dim,), activation='relu'))
@@ -92,7 +125,10 @@ def simplistic_solution():
     # load the dataset
     x_train, y_train, x_test, y_test  = assign2_utils.load_dataset()
 
-    x_train = x_train.reshape(60000, 784)
+    # Example of magic numbers (6000, 784)
+    # This should be avoided. Here we could/should have retrieve the
+    # dimensions of the arrays using the numpy ndarray method shape 
+    x_train = x_train.reshape(60000, 784) 
     x_test = x_test.reshape(10000, 784)
     x_train = x_train.astype('float32')
     x_test = x_test.astype('float32')
