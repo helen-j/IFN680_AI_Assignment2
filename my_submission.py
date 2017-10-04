@@ -9,6 +9,7 @@ Scaffholding code to get you started for the 2nd assignment.
 
 import random
 import numpy as np
+import timeit
 
 #import matplotlib.pyplot as plt
 
@@ -112,13 +113,25 @@ def simplistic_solution():
     def create_simplistic_base_network(input_dim):
         '''
         Base network to be shared (eq. to feature extraction).
+        
+        TODO Replace this with CNN better
         '''
+        start_time = timeit.default_timer()
         seq = keras.models.Sequential()
         seq.add(keras.layers.Dense(128, input_shape=(input_dim,), activation='relu'))
         seq.add(keras.layers.Dropout(0.1))
         seq.add(keras.layers.Dense(128, activation='relu'))
         seq.add(keras.layers.Dropout(0.1))
         seq.add(keras.layers.Dense(128, activation='relu'))
+        
+        
+        
+        
+        
+        
+        
+        executionTime = timeit.default_timer() - start_time  
+        print("executionTime: ", executionTime)
         return seq
         # . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
     
@@ -185,7 +198,13 @@ def simplistic_solution():
 
 
 #------------------------------------------------------------------------------        
+'''
+# TODO
+1. train on data set without warping
+2.   with warping
+3.   phases start with smaller deformations
 
+'''
 
 #------------------------------------------------------------------------------        
 #------------------------------------------------------------------------------        
