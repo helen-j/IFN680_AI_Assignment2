@@ -142,15 +142,15 @@ def compute_performance():
 
 
 #------------------------------------------------------------------------------
-def train_siamese(model, tr_pairs, tr_y, te_pairs, te_y):
+def train_siamese(model, train_pairs, train_y, test_pairs, test_y):
     
         # train
     rms = keras.optimizers.RMSprop()
     model.compile(loss=contrastive_loss, optimizer=rms)
-    model.fit([tr_pairs[:, 0], tr_pairs[:, 1]], tr_y,
+    model.fit([train_pairs[:, 0], train_pairs[:, 1]], train_y,
               batch_size=128,
               epochs=training_epochs,
-              validation_data=([te_pairs[:, 0], te_pairs[:, 1]], te_y))
+              validation_data=([test_pairs[:, 0], test_pairs[:, 1]], test_y))
     
 #    pass
 
@@ -255,16 +255,39 @@ def preprocess_Data(degree, strength):
 
 #------------------------------------------------------------------------------
 
-def solution(architecture_flag, degree, strength, percentage):
-    
-#    def baseline_Architecture(input_shape): 
-#        seq = keras.models.Sequential()
-#        seq.add(keras.layers.Dense(128, input_shape=(input_dim,), activation='relu'))
-#        seq.add(keras.layers.Dropout(0.1))
-#        seq.add(keras.layers.Dense(128, activation='relu'))
-#        seq.add(keras.layers.Dropout(0.1))
-#        seq.add(keras.layers.Dense(128, activation='relu'))
-#        return seq
+def solution(architecture_flag, degree, strength, percentage):    
+
+    def hj_Architecture(input_shape):
+        seq  = keras.models.Sequential()
+        
+        seq.add(keras.layers.Conv2D(32, (3, 3), input_shape=input_shape)) 
+        keras.layers.BatchNormalization(axis=-1)
+        seq.add(keras.layers.Activation('relu'))
+        seq.add(keras.layers.Conv2D(32, (3, 3))) 
+        keras.layers.BatchNormalization(axis=-1)
+        seq.add(keras.layers.Activation('relu'))
+        seq.add(keras.layers.MaxPooling2D(pool_size=(2,2)))
+        
+        seq.add(keras.layers.Conv2D(64,(3, 3))) 
+        keras.layers.BatchNormalization(axis=-1)
+        seq.add(keras.layers.Activation('relu'))
+        seq.add(keras.layers.Conv2D(64, (3, 3))) 
+        keras.layers.BatchNormalization(axis=-1)
+        seq.add(keras.layers.Activation('relu'))
+        seq.add(keras.layers.MaxPooling2D(pool_size=(2,2)))
+        
+        seq.add(keras.layers.Flatten())
+        
+        # Fully connected layer
+        seq.add(keras.layers.Dense(512)) 
+        keras.layers.BatchNormalization()
+        seq.add(keras.layers.Activation('relu'))
+        seq.add(keras.layers.Dropout(0.2))
+        seq.add(keras.layers.Dense(10))
+        
+        seq.add(keras.layers.Activation('softmax'))
+        
+        return seq  
     
     
     def first_Architecture(input_shape): 
