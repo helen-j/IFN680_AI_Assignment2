@@ -35,10 +35,6 @@ degree          = 0         # used to warp the original data set
 strength        = 0         # used to warp the original data set
 
 
-# traing/validation
-training_epochs = 20
-train_size      = 60000     # Training size
-val_size        = 40000     # Validation size
 
 # Experiment Architecture
 architecture_flag  = 1      # which network architecture to use
